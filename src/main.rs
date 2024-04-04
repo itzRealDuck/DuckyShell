@@ -1,5 +1,3 @@
-
-
 use crossterm::{
     cursor::{Hide, MoveTo},
     terminal::{Clear, ClearType},
@@ -77,12 +75,15 @@ let actualpath = entry.path();
 
 }
 
+
+
 fn main() {
     let mut input = String::new();
     println!(
         "Release 0.1 Alpha of RustyShell,Welcome {} ",
         whoami::realname()
     );
+    
 
     loop {
         io::stdin().read_line(&mut input).unwrap();
@@ -173,6 +174,53 @@ fn main() {
             words if words[0].trim() == "ls" && words[1] == "-l" => { 
 
            let _ = get_file_perms();
+
+            }
+
+            words if words[0].trim() == "touch" && words[1].trim() == words[1].trim() => { 
+
+                
+        
+let _ = File::create(words[1].trim());
+
+            }
+
+            words if words[0].trim() == "mkdir" && words[1].trim() == words[1].trim() => { 
+
+    
+               if !words[1].trim().contains(".") { 
+
+                    
+                    let _ = fs::create_dir(words[1].trim());
+
+                }
+                else { 
+
+                    
+                    println!("no");
+
+                }
+
+
+
+            }
+
+            words if words[0].trim() == "rm" && words[1].trim() == "-rf" && words[2].trim() == words[2].trim() && Path::new(words[2].trim()).exists() || words[0].trim() == "rm" && words[1].trim() == "-rf" && words[2].trim() == words[2].trim()
+            => { 
+
+                
+                let _ = fs::remove_dir_all(words[2].trim());
+            
+
+            }
+
+            words if words[0].trim() == "rm" && words[1].trim() == words[1].trim() => { 
+
+
+                    let _ = fs::remove_file(words[1].trim());
+
+                    
+
 
             }
 
