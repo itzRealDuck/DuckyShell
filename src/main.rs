@@ -162,11 +162,7 @@ fn main() {
             }
 
             words if words[0].trim() == "mkdir" && words[1].trim() == words[1].trim() => {
-                if !words[1].trim().contains(".") {
-                    let _ = fs::create_dir(words[1].trim());
-                } else {
-                    println!("no");
-                }
+                let _ = fs::create_dir(words[1].trim());
             }
 
             words
