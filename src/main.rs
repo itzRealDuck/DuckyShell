@@ -13,9 +13,8 @@ use std::io::{stdout, Write};
 use std::path::Path;
 use std::process;
 
-
 fn cd(input: &mut String) {
-let _ =    env::set_current_dir(
+    let _ = env::set_current_dir(
         //    "/home/".to_string()
         //      + &whoami::realname().to_owned().to_lowercase()
         //    + "/"
@@ -23,7 +22,7 @@ let _ =    env::set_current_dir(
     );
 
     if input == "/" {
-    let _ =  env::set_current_dir("/");
+        let _ = env::set_current_dir("/");
     }
 }
 
@@ -41,49 +40,33 @@ fn ls(dir: &Path) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_file_perms() -> io::Result<()>{
+fn get_file_perms() -> io::Result<()> {
+    let path = fs::read_dir(".")?;
 
-let path = fs::read_dir(".")?; 
+    for pathy in path {
+        let entry = pathy?;
+        let actualpath = entry.path();
 
+        if actualpath.is_file() {
+            let metadata = actualpath.metadata();
 
- for pathy in path { 
-
-let entry = pathy?;  
-let actualpath = entry.path();
-
-   if actualpath.is_file() { 
-
-    let metadata = actualpath.metadata();
-
-        if metadata.expect("jitty").permissions().readonly() == true { 
-
-        println!("read {:?}", actualpath);
-
-
-            }    
-            else { 
-            println!("write {:?}", actualpath);
-
+            if metadata.expect("jitty").permissions().readonly() == true {
+                println!("read {:?}", actualpath);
+            } else {
+                println!("write {:?}", actualpath);
             }
-
-
-
-        }     
-    }  
+        }
+    }
 
     Ok(())
-
 }
-
-
 
 fn main() {
     let mut input = String::new();
     println!(
-        "Release 0.1 Alpha of RustyShell,Welcome {} ",
+        "Release 7.3 Alpha of RustyShell,Welcome {} ",
         whoami::realname()
     );
-    
 
     loop {
         io::stdin().read_line(&mut input).unwrap();
@@ -101,7 +84,7 @@ fn main() {
                     && words[1] == words[1]
                     && Path::new(words[1].trim()).exists() =>
             {
-                let  path = Path::new(words[1].trim());
+                let path = Path::new(words[1].trim());
 
                 if path.exists() {
                     if let Err(ref e) = ls(path) {
@@ -152,7 +135,7 @@ fn main() {
 
                 let mut file_container = String::new();
 
-             let _ =  file_open
+                let _ = file_open
                     .expect("idk what dis does")
                     .read_to_string(&mut file_container);
 
@@ -166,62 +149,40 @@ fn main() {
                     Ok(y) => y,
                     Err(..) => panic!("nuh uh"),
                 };
-            
 
                 println!("{}", path.display());
             }
 
-            words if words[0].trim() == "ls" && words[1] == "-l" => { 
-
-           let _ = get_file_perms();
-
+            words if words[0].trim() == "ls" && words[1] == "-l" => {
+                let _ = get_file_perms();
             }
 
-            words if words[0].trim() == "touch" && words[1].trim() == words[1].trim() => { 
-
-                
-        
-let _ = File::create(words[1].trim());
-
+            words if words[0].trim() == "touch" && words[1].trim() == words[1].trim() => {
+                let _ = File::create(words[1].trim());
             }
 
-            words if words[0].trim() == "mkdir" && words[1].trim() == words[1].trim() => { 
-
-    
-               if !words[1].trim().contains(".") { 
-
-                    
+            words if words[0].trim() == "mkdir" && words[1].trim() == words[1].trim() => {
+                if !words[1].trim().contains(".") {
                     let _ = fs::create_dir(words[1].trim());
-
-                }
-                else { 
-
-                    
+                } else {
                     println!("no");
-
                 }
-
-
-
             }
 
-            words if words[0].trim() == "rm" && words[1].trim() == "-rf" && words[2].trim() == words[2].trim() && Path::new(words[2].trim()).exists() || words[0].trim() == "rm" && words[1].trim() == "-rf" && words[2].trim() == words[2].trim()
-            => { 
-
-                
+            words
+                if words[0].trim() == "rm"
+                    && words[1].trim() == "-rf"
+                    && words[2].trim() == words[2].trim()
+                    && Path::new(words[2].trim()).exists()
+                    || words[0].trim() == "rm"
+                        && words[1].trim() == "-rf"
+                        && words[2].trim() == words[2].trim() =>
+            {
                 let _ = fs::remove_dir_all(words[2].trim());
-            
-
             }
 
-            words if words[0].trim() == "rm" && words[1].trim() == words[1].trim() => { 
-
-
-                    let _ = fs::remove_file(words[1].trim());
-
-                    
-
-
+            words if words[0].trim() == "rm" && words[1].trim() == words[1].trim() => {
+                let _ = fs::remove_file(words[1].trim());
             }
 
             Vec { .. } => todo!(),
@@ -229,4 +190,3 @@ let _ = File::create(words[1].trim());
         input.clear();
     }
 }
-
