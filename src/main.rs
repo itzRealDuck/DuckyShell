@@ -1,6 +1,6 @@
 use crossterm::{
     cursor::{Hide, MoveTo},
-    terminal::{Clear, ClearType},
+    terminal::{self,Clear, ClearType},
     QueueableCommand,
 };
 use io::Read;
@@ -12,6 +12,7 @@ use std::io;
 use std::io::{stdout, Write};
 use std::path::Path;
 use std::process;
+
 
 fn cd(input: &mut String) {
     let _ = env::set_current_dir(
@@ -180,9 +181,22 @@ fn main() {
             words if words[0].trim() == "rm" && words[1].trim() == words[1].trim() => {
                 let _ = fs::remove_file(words[1].trim());
             }
+                         
+            words if words == words => { 
 
-            Vec { .. } => todo!(),
+            let _ = process::Command::new(words[0].trim())
+                    .args(&words[1..])
+                    .spawn()
+                    .expect("realest real");
+
+           
+
+            }
+
+             Vec { .. } => todo!()
         }
         input.clear();
     }
+
 }
+
