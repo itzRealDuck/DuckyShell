@@ -12,6 +12,7 @@ use std::io;
 use std::io::{stdout, Write};
 use std::path::Path;
 use std::process;
+use std::process::{Command, Stdio};
 
 fn cd(input: &mut String) {
     let _ = env::set_current_dir(
@@ -182,10 +183,15 @@ fn main() {
             }
 
             words if words == words => {
-                let _ = process::Command::new(words[0].trim())
+                let mut child = process::Command::new(words[0].trim())
                     .args(&words[1..])
+                    .stdin(Stdio::inherit())
+                    .stdout(Stdio::inherit())
+                    .stderr(Stdio::inherit())
                     .spawn()
                     .expect("realest real");
+
+                let _ = child.wait();
             }
 
             Vec { .. } => todo!(),
