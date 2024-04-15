@@ -185,9 +185,6 @@ fn main() {
             words if words == words => {
                 let mut child = process::Command::new(words[0].trim())
                     .args(&words[1..])
-                    .stdin(Stdio::inherit())
-                    .stdout(Stdio::inherit())
-                    .stderr(Stdio::inherit())
                     .spawn()
                     .expect("realest real");
 
