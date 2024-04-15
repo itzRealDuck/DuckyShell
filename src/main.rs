@@ -12,7 +12,6 @@ use std::io;
 use std::io::{stdout, Write};
 use std::path::Path;
 use std::process;
-use std::process::{Command, Stdio};
 
 fn cd(input: &mut String) {
     let _ = env::set_current_dir(
