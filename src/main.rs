@@ -73,6 +73,7 @@ fn main() {
 
         let words: Vec<&str> = input.split_whitespace().collect();
         match words {
+            // Ls Command And Its Arguments: Start
             words if words[0].trim() == "ls".trim() && words.get(1).is_none() => {
                 if let Err(ref e) = ls(Path::new(".")) {
                     println!("{}", e);
@@ -95,6 +96,13 @@ fn main() {
                     println!("path not exist ");
                 }
             }
+            words if words[0].trim() == "ls" && words[1].trim() == "-l" => {
+                let _ = get_file_perms();
+            }
+
+            // End
+
+            // Cd Command And Its Arguments: Start
             words if words[0] == "cd".trim() && words.get(1).is_none() => {
                 // let whoamiString = String::from(whoami::realname());
 
@@ -114,6 +122,9 @@ fn main() {
 
                 inputy.clear()
             }
+            // End
+
+            // Clear Command: Start
             words if words[0].trim() == "clear".trim() => {
                 let mut out = stdout();
                 out.queue(Hide).unwrap();
@@ -121,9 +132,15 @@ fn main() {
                 out.queue(MoveTo(0, 0)).unwrap();
                 out.flush().unwrap();
             }
+            // End
+
+            // Exit Command: Start
             words if words[0].trim() == "exit".trim() => {
                 std::process::exit(0);
             }
+            // End
+
+            // Cat And Its Arguments: Start
             words
                 if words[0].trim() == "cat".trim()
                     && words[1] == words[1]
@@ -141,6 +158,9 @@ fn main() {
 
                 println!("{}", file_container);
             }
+            // End
+
+            // Echo Command: Start
             words if words[0].trim() == "echo" && words[1] == words[1] && words[1] != "$PATH" => {
                 println!("{}", words[1]);
             }
@@ -153,18 +173,23 @@ fn main() {
                 println!("{}", path.display());
             }
 
-            words if words[0].trim() == "ls" && words[1] == "-l" => {
-                let _ = get_file_perms();
-            }
+            // End
 
+            // Touch And Its Arguments: Start
             words if words[0].trim() == "touch" && words[1].trim() == words[1].trim() => {
                 let _ = File::create(words[1].trim());
             }
 
+            // End
+
+            // Mkdir And Its Arguments: Start
             words if words[0].trim() == "mkdir" && words[1].trim() == words[1].trim() => {
                 let _ = fs::create_dir(words[1].trim());
             }
 
+            // End
+
+            // Rm And Its Arguments: Start
             words
                 if words[0].trim() == "rm"
                     && words[1].trim() == "-rf"
@@ -174,13 +199,23 @@ fn main() {
                         && words[1].trim() == "-rf"
                         && words[2].trim() == words[2].trim() =>
             {
-                let _ = fs::remove_dir_all(words[2].trim());
+                // let _ = fs::remove_dir_all(words[2].trim());
+
+                let filechecker = Path::new(words[2].trim());
+
+                if filechecker.is_file() {
+                    let _ = fs::remove_file(words[2].trim());
+                } else {
+                    let _ = fs::remove_dir(words[2].trim());
+                }
             }
 
             words if words[0].trim() == "rm" && words[1].trim() == words[1].trim() => {
                 let _ = fs::remove_file(words[1].trim());
             }
+            // End
 
+            // Non-CoreUtil Apps Executer: Start
             words if words == words => {
                 let mut child = process::Command::new(words[0].trim())
                     .args(&words[1..])
@@ -189,7 +224,7 @@ fn main() {
 
                 let _ = child.wait();
             }
-
+            // End
             Vec { .. } => todo!(),
         }
         input.clear();
