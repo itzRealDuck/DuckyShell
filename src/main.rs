@@ -5,7 +5,6 @@ use crossterm::{
 };
 use io::Read;
 use std::env;
-use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io;
@@ -25,42 +24,97 @@ fn cd(input: &mut String) {
         let _ = env::set_current_dir("/");
     }
 }
+mod ls {
+    use std::error::Error;
+    use std::fs;
+    use std::io;
+    use std::path::Path;
 
-fn ls(dir: &Path) -> Result<(), Box<dyn Error>> {
-    if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let file_name = entry
-                .file_name()
-                .into_string()
-                .or_else(|f| Err(format!("Invalid entry: {:?}", f)))?;
-            println!("{}", file_name);
-        }
-    }
-    Ok(())
-}
-
-fn get_file_perms() -> io::Result<()> {
-    let path = fs::read_dir(".")?;
-
-    for pathy in path {
-        let entry = pathy?;
-        let actualpath = entry.path();
-
-        if actualpath.is_file() {
-            let metadata = actualpath.metadata();
-
-            if metadata.expect("jitty").permissions().readonly() == true {
-                println!("read {:?}", actualpath);
-            } else {
-                println!("write {:?}", actualpath);
+    pub fn list(dir: &Path) -> Result<(), Box<dyn Error>> {
+        if dir.is_dir() {
+            for entry in fs::read_dir(dir)? {
+                let entry = entry?;
+                let file_name = entry
+                    .file_name()
+                    .into_string()
+                    .or_else(|f| Err(format!("Invalid entry: {:?}", f)))?;
+                println!("{}", file_name);
             }
         }
+        Ok(())
     }
 
-    Ok(())
-}
+    pub fn lsl() -> io::Result<()> {
+        let path = fs::read_dir(".")?;
 
+        for pathy in path {
+            let entry = pathy?;
+            let actualpath = entry.path();
+
+            if actualpath.is_file() {
+                let metadata = actualpath.metadata();
+
+                if metadata.expect("jitty").permissions().readonly() == true {
+                    println!("read {:?}", actualpath);
+                } else {
+                    println!("write {:?}", actualpath);
+                }
+            }
+        }
+
+        Ok(())
+    }
+    pub fn help() {
+        println!(
+            "Usage: ls || Options: 
+     -l            Show Permissions
+      More Coming Soon!"
+        );
+        println!("Made By ItzReakDuck, implemented and is for DuckyShell");
+    }
+}
+mod grep {
+    use std::fs;
+    use std::fs::File;
+    use std::io;
+    use std::io::Read;
+
+    pub fn grepfind(wordsearch: &String) -> io::Result<()> {
+        let path = fs::read_dir(".")?;
+        for entry in path {
+            let entry = entry?;
+            let relentry = entry.path();
+
+            if relentry.is_file() {
+                let FileOpen = File::open(&relentry);
+                let mut file_container = String::new();
+                let _ = FileOpen
+                    .expect("just an expect")
+                    .read_to_string(&mut file_container);
+                if file_container.contains(wordsearch) {
+                    println!("This File {:?} Has Your words {}!", relentry, wordsearch);
+                } else {
+                }
+            }
+        }
+        Ok(())
+    }
+    pub fn greptext(text: &String, file: &String) -> io::Result<()> {
+        for lines in fs::read_to_string(file).unwrap().lines() {
+            if lines.contains(text.trim()) {
+                println!("{}", lines);
+            }
+        }
+        Ok(())
+    }
+    pub fn help() {
+        println!(
+            "Usage: grep [word], Other Options: 
+   soon to be added"
+        );
+        println!("Made By ItzReakDuck, implemented and is for DuckyShell");
+    }
+}
 fn main() {
     let mut input = String::new();
     println!(
@@ -75,7 +129,7 @@ fn main() {
         match words {
             // Ls Command And Its Arguments: Start
             words if words[0].trim() == "ls".trim() && words.get(1).is_none() => {
-                if let Err(ref e) = ls(Path::new(".")) {
+                if let Err(ref e) = crate::ls::list(Path::new(".")) {
                     println!("{}", e);
                     process::exit(1);
                 }
@@ -88,7 +142,7 @@ fn main() {
                 let path = Path::new(words[1].trim());
 
                 if path.exists() {
-                    if let Err(ref e) = ls(path) {
+                    if let Err(ref e) = crate::ls::list(path) {
                         println!("{}", e);
                         process::exit(1);
                     }
@@ -97,7 +151,13 @@ fn main() {
                 }
             }
             words if words[0].trim() == "ls" && words[1].trim() == "-l" => {
-                let _ = get_file_perms();
+                let _ = crate::ls::lsl();
+            }
+            words
+                if words[0].trim() == "ls" && words[1].trim() == "-h"
+                    || words[0].trim() == "ls" && words[1].trim() == "--help" =>
+            {
+                let _ = crate::ls::help();
             }
 
             // End
@@ -213,6 +273,31 @@ fn main() {
             words if words[0].trim() == "rm" && words[1].trim() == words[1].trim() => {
                 let _ = fs::remove_file(words[1].trim());
             }
+            // End
+            // Grep Command And Its Arguments: Start
+            words
+                if words[0].trim() == "grep" && words[1].trim() == "-h"
+                    || words[0].trim() == "grep" && words[1].trim() == "--help" =>
+            {
+                let _ = crate::grep::help();
+            }
+            words
+                if words[0].trim() == "grep"
+                    && words[1].trim() == "--text"
+                    && words[2].trim() == words[2].trim()
+                    && words[3].trim() == words[3].trim() =>
+            {
+                let words2_to_string = words[2].to_string();
+                let words3_to_string = words[3].to_string();
+
+                let _ = crate::grep::greptext(&words2_to_string, &words3_to_string);
+            }
+            words if words[0].trim() == "grep" && words[1].trim() == words[1].trim() => {
+                let words1_tostring = words[1].to_string();
+
+                let _ = crate::grep::grepfind(&words1_tostring);
+            }
+
             // End
 
             // Non-CoreUtil Apps Executer: Start
