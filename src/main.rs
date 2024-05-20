@@ -145,7 +145,7 @@ mod yes {
 }
 
 mod find {
-    use std::collections::HashSet;
+    use std::collections::VecDeque;
     use std::fs;
     use std::io;
     use std::path::PathBuf;
@@ -178,36 +178,29 @@ mod find {
         println!("Rewritten coreutils, find 0.1");
     }
 
-    pub fn traverse_directory(
-        directory: &PathBuf,
-        pattern: &str,
-        visited: &mut HashSet<PathBuf>,
-    ) -> io::Result<()> {
-        if visited.insert(directory.to_path_buf()) {
-            if let Ok(entries) = fs::read_dir(directory) {
-                for entry in entries {
-                    let entry = entry?;
-                    let path = entry.path();
+    pub fn iname(path: &PathBuf, pattern: &String) -> io::Result<()> {
+        let mut iter = VecDeque::new();
 
-                    if path.to_string_lossy().contains(pattern) {
-                        if path.display().to_string().contains("Templates") {
-                        } else {
-                            println!("{}", path.display());
-                            let _ = traverse_directory(&path, &pattern, visited);
-                        }
-                    }
+        iter.push_back(path.to_path_buf());
 
-                    if path.is_dir() && !visited.contains(&path) {
-                        if path.display().to_string().contains("Templates") {
-                        } else {
-                            // println!("{}", path.display());
-                            let _ = traverse_directory(&path, &pattern, visited);
-                        }
-                        // let _ = traverse_directory(&path, &pattern, visited);
-                    }
+        while let Some(sheez) = iter.pop_front() {
+            let dirs = fs::read_dir(&sheez)?;
+            for entry in dirs {
+                let entry = entry?;
+                let pathy = entry.path();
+
+                if pathy.is_dir() {
+                    iter.push_back(pathy);
+                } else if pathy
+                    .to_string_lossy()
+                    .to_lowercase()
+                    .contains(&pattern.to_lowercase())
+                {
+                    println!("{}", pathy.display());
                 }
             }
         }
+
         Ok(())
     }
 }
@@ -432,25 +425,20 @@ fn main() {
                     && words[1].trim() == "-name"
                     && words[2].trim() == words[2].trim() =>
             {
-                use std::collections::HashSet;
                 use std::path::PathBuf;
-                let _ = crate::find::traverse_directory(
-                    &PathBuf::from("."),
-                    &words[2],
-                    &mut HashSet::new(),
-                );
+                let _ = crate::find::iname(&PathBuf::from("."), &words[2].to_string());
             }
             // End
 
             // Non-CoreUtil Apps Executer: Start
-            /*words if words == words => {
+            words if words == words => {
                 let mut child = process::Command::new(words[0].trim())
                     .args(&words[1..])
                     .spawn()
                     .expect("realest real");
 
                 let _ = child.wait();
-            }*/
+            }
             // End
             Vec { .. } => todo!(),
         }
