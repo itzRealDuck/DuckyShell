@@ -12,7 +12,7 @@ use std::io::{stdout, Write};
 use std::path::Path;
 use std::process;
 
-fn cd(input: &mut String) {
+pub fn cd(input: &mut String) {
     let _ = env::set_current_dir(
         //    "/home/".to_string()
         //      + &whoami::realname().to_owned().to_lowercase()
@@ -113,6 +113,95 @@ mod grep {
    soon to be added"
         );
         println!("Made By ItzReakDuck, implemented and is for DuckyShell");
+    }
+}
+
+mod yes {
+
+    pub fn yes(printhing: &String) {
+        if printhing.is_empty() {
+            loop {
+                println!("y");
+            }
+        } else {
+            loop {
+                println!("{}", printhing);
+            }
+        }
+    }
+
+    pub fn help() {
+        println!(
+            "yes Or yes [words to spam], Arguments: 
+        --version         Print version
+        --help || -h      Print this help message
+                \n "
+        );
+        println!("Made By ItzReakDuck, implemented and is for DuckyShell");
+    }
+    pub fn version() {
+        println!("Rewritten coreutils, yes 1.0");
+    }
+}
+
+mod find {
+    use std::collections::VecDeque;
+    use std::fs;
+    use std::io;
+    use std::path::PathBuf;
+    pub fn find(arg1: &String) -> io::Result<()> {
+        let list = fs::read_dir(".")?;
+
+        for entry in list {
+            let entry = entry?;
+            let path = &String::from(entry.path().file_name().unwrap().to_str().unwrap());
+
+            if path == arg1 {
+                println!("{}", path);
+            } else {
+            }
+        }
+
+        Ok(())
+    }
+    pub fn help() {
+        println!(
+            "Usage: find [file to find], Other Options: 
+    --help      Print this message
+    --version   Print version 
+    Other Options Coming Soon
+"
+        );
+        println!("Made By ItzReakDuck, implemented and is for DuckyShell");
+    }
+    pub fn version() {
+        println!("Rewritten coreutils, find 0.1");
+    }
+
+    pub fn iname(path: &PathBuf, pattern: &String) -> io::Result<()> {
+        let mut iter = VecDeque::new();
+
+        iter.push_back(path.to_path_buf());
+
+        while let Some(sheez) = iter.pop_front() {
+            let dirs = fs::read_dir(&sheez)?;
+            for entry in dirs {
+                let entry = entry?;
+                let pathy = entry.path();
+
+                if pathy.is_dir() {
+                    iter.push_back(pathy);
+                } else if pathy
+                    .to_string_lossy()
+                    .to_lowercase()
+                    .contains(&pattern.to_lowercase())
+                {
+                    println!("{}", pathy.display());
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 fn main() {
@@ -287,17 +376,58 @@ fn main() {
                     && words[2].trim() == words[2].trim()
                     && words[3].trim() == words[3].trim() =>
             {
-                let words2_to_string = words[2].to_string();
-                let words3_to_string = words[3].to_string();
+                //               let words2_to_string = words[2].to_string();
+                //             let words3_to_string = words[3].to_string();
 
-                let _ = crate::grep::greptext(&words2_to_string, &words3_to_string);
+                let _ = crate::grep::greptext(&words[2].to_string(), &words[3].to_string());
             }
             words if words[0].trim() == "grep" && words[1].trim() == words[1].trim() => {
-                let words1_tostring = words[1].to_string();
-
-                let _ = crate::grep::grepfind(&words1_tostring);
+                let _ = crate::grep::grepfind(&words[1].to_string());
             }
 
+            // End
+
+            // yes Command And Its Arguments: Start
+            words if words[0].trim() == "yes" && words.get(1).is_none() => {
+                let _ = crate::yes::yes(&String::new());
+            }
+            words
+                if words[0].trim() == "yes" && words[1].trim() == "-h"
+                    || words[0].trim() == "yes" && words[1].trim() == "--help" =>
+            {
+                let _ = crate::yes::help();
+            }
+            words if words[0].trim() == "yes" && words[1].trim() == "--version" => {
+                let _ = crate::yes::version();
+            }
+            words if words[0].trim() == "yes" && words.get(1).is_some() => {
+                let _ = crate::yes::yes(&words[1].to_string());
+            }
+
+            // End
+
+            // find Command Its Arguments: Start
+            words
+                if words[0].trim() == "find"
+                    && words[1].trim() == words[1].trim()
+                    && Path::new(words[1].trim()).exists() =>
+            {
+                let _ = crate::find::find(&words[1].to_string());
+            }
+            words if words[0].trim() == "find" && words[1].trim() == "--help" => {
+                let _ = crate::find::help();
+            }
+            words if words[0].trim() == "find" && words[1].trim() == "--version" => {
+                let _ = crate::find::version();
+            }
+            words
+                if words[0].trim() == "find"
+                    && words[1].trim() == "-name"
+                    && words[2].trim() == words[2].trim() =>
+            {
+                use std::path::PathBuf;
+                let _ = crate::find::iname(&PathBuf::from("."), &words[2].to_string());
+            }
             // End
 
             // Non-CoreUtil Apps Executer: Start
