@@ -12,7 +12,7 @@ use std::io::{stdout, Write};
 use std::path::Path;
 use std::process;
 
-pub fn cd(input: &mut String) {
+fn cd(input: &mut String) {
     let _ = env::set_current_dir(
         //    "/home/".to_string()
         //      + &whoami::realname().to_owned().to_lowercase()
@@ -204,6 +204,68 @@ mod find {
         Ok(())
     }
 }
+
+mod cp {
+
+    use std::collections::VecDeque;
+    use std::fs;
+    use std::io;
+    use std::path::PathBuf;
+
+    pub fn cp(src: &PathBuf, dst: &mut PathBuf) -> Result<(), io::Error> {
+        let mut iterator = VecDeque::new();
+        iterator.push_back(src.to_path_buf());
+        *dst = dst.join(src.file_name().unwrap());
+        iterator.push_back(dst.to_path_buf());
+
+        while let Some(cheese) = iterator.pop_front() {
+            if let Some(bread) = iterator.pop_front() {
+                fs::create_dir_all(&bread)?;
+
+                for entry in fs::read_dir(&cheese)? {
+                    let path = &entry?.path();
+
+                    if path.is_dir() {
+                        //  *dst = dst.join(path.file_name().unwrap());
+                        iterator.push_back(path.to_path_buf());
+                        iterator.push_back(bread.join(&path.file_name().unwrap()));
+                    } else if path.is_file() {
+                        let _ = fs::copy(&path, bread.join(&path.file_name().unwrap()));
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn help() {
+        println!("Usage: cp [optional flags] [from] [to] || Options: 
+        -v || --version      ->  shows version of the command 
+        -h || --help         ->  shows this help message 
+           -r                ->  instead of an iterative approach, it recrusivly copy files and directories
+      More Coming Soon!");
+        println!("Made By ItzReakDuck, implemented and is for DuckyShell");
+    }
+    pub fn version() {
+        println!("Rewritten coreutils, cp 0.3");
+    }
+    pub fn recrusive(src: &PathBuf, dst: &PathBuf) -> Result<(), io::Error> {
+        fs::create_dir_all(&dst)?;
+
+        for entry in fs::read_dir(src)? {
+            let path = entry?.path();
+
+            if path.is_dir() {
+                let _ = recrusive(&path, &mut dst.join(path.file_name().unwrap()));
+            } else if path.is_file() {
+                let _ = fs::copy(&path, dst.join(path.file_name().unwrap()));
+            }
+        }
+        Ok(())
+    }
+}
+
 fn main() {
     let mut input = String::new();
     println!(
@@ -355,7 +417,7 @@ fn main() {
                 if filechecker.is_file() {
                     let _ = fs::remove_file(words[2].trim());
                 } else {
-                    let _ = fs::remove_dir(words[2].trim());
+                    let _ = fs::remove_dir_all(words[2].trim());
                 }
             }
 
@@ -428,6 +490,46 @@ fn main() {
                 use std::path::PathBuf;
                 let _ = crate::find::iname(&PathBuf::from("."), &words[2].to_string());
             }
+            // End
+
+            // Cp Command and its arguments
+            words
+                if words[0].trim() == "cp"
+                    && words[1].trim() == "-r"
+                    && Path::new(words[2].trim()).exists()
+                    && Path::new(words[3].trim()).exists() =>
+            {
+                use std::path::PathBuf;
+                let _ = crate::cp::recrusive(
+                    &PathBuf::from(words[2].trim()),
+                    &PathBuf::from(words[3].trim())
+                        .join(PathBuf::from(words[2].trim()).file_name().unwrap()),
+                );
+            }
+            words
+                if words[0].trim() == "cp"
+                    && Path::new(words[1].trim()).exists()
+                    && Path::new(words[2].trim()).exists() =>
+            {
+                use std::path::PathBuf;
+                let _ = crate::cp::cp(
+                    &PathBuf::from(words[1].trim()),
+                    &mut PathBuf::from(words[2].trim()),
+                );
+            }
+            words
+                if words[0].trim() == "cp" && words[1].trim() == "-v"
+                    || words[0].trim() == "cp" && words[1].trim() == "--version" =>
+            {
+                let _ = crate::cp::version();
+            }
+            words
+                if words[0].trim() == "cp" && words[1].trim() == "-h"
+                    || words[0].trim() == "cp" && words[1].trim() == "--help" =>
+            {
+                let _ = crate::cp::help();
+            }
+
             // End
 
             // Non-CoreUtil Apps Executer: Start
